@@ -1,0 +1,23 @@
+\section{Analysis}
+
+\newcommand{\pmin}{p_{min}}
+
+Throughout the execution, we will maintain a potential function $\phi(t)$ that is a function of the state of the system at time $t$.  This potential function will capture how much progress the system is making at delivering packets.
+
+For each packet $i$, we define $p_i$ to be the joining probability of $i$.  We define the contention $c(t) = \sum_i p_i$.  We define $\pmin(t) = \min_i p_i$ to be the minimum probability of any packet currently in the system.
+
+The potential function consists of three components:
+\begin{enumerate}
+    \item $N(t)$ is the number of packets that have been injected in the system at time $t$.
+    \item $logC(t) = \threshold\left|\log\left(\frac{c(t)}{\tau}\right)\right|$ is the log of the contention and indicates how far the contention is from the ideal point $\tau$, i.e., how many epochs of length $\threshold$ are needed to reach $\tau$. 
+    \item $s(t) = \threshold\log\left(\frac{c(t)}{\pmin(t)}\right)$ is designed to compensate for changes in potential when packets exit the system.
+\end{enumerate}
+
+The key claims we need to prove are as follows.  For the purpose of this paragraph, assume that ``with high probability'' means ``with probability of error exponentially small in $\threshold$.''
+\begin{itemize}
+    \item When $c(t)$ is close to $\tau$, we have a successful epoch with high probability.  Assume the epoch is $r$ rounds long.  When this occurs, $N(t)$ decreases by at least $r$.  The second term $logC(t)$ may increase, but it will be compensate for by the decrease in $s(t)$ so that the next change when a packet completes is always a decrease of at least $r$.
+    \item When $c(t)$ is bigger than $\tau$, then with high probability an epoch contains no silent rounds.  Assume the epoch is $r$ rounds long.  In this case, either $r$ packets completes, and the potential decreases by at least $r$ (as per the previous case), or every packet decreases its joining probability by a factor of $2$ (and $r = \threshold$).  In the latter case, $N(t)$ remains unchanged, $logC(t)$ decreases by $\threshold$, and $s(t)$ remains unchanged.
+    \item When $c(t)$ is smaller than $\tau$, then with high probability an epoch either contains a single silent round or there is a decoding event.  Assume the epoch is $r$ rounds long.  In this case, either $r$ packets completes, and the potential decreases by at least $r$ (as per the first case), or every packet increases its joining probability by a factor of $(1 + 1/\threshold)$ (and $r = 1$).  In the latter case, $N(t)$ remains unchanged, $logC(t)$ increases by $(1 + 1/\threshold)$, and $s(t)$ remains unchanged.
+\end{itemize}
+
+Let $A(t)$ be the number of packets that arrive at the beginning of round $t$.  With the above claims proved, we can show that, in expectation, the change in potential in every round is $A(t) - (1 - e^{-\Theta(\threshold)})$.
