@@ -1,0 +1,84 @@
+\section{Warm-Up: Simple Batch Case}
+\label{sec:batch}
+
+We first analyze a simple batch case, where we assume that $n$ devices
+all enter the system and start executing the protocol at time $0$. In
+such a case, all devices in the system always use exactly the same
+transmission probability $p$. To understand what kind of throughput is
+possible on our channel with coding, let's first look at the behavior
+of the channel if $n$ devices all independently try to access the
+channel with probability $p$.  For the standard shared channel, i.e.,
+if we do not use coding and $\threshold=1$, it is well-known that if
+there are $n$ devices and every device accesses the channel with the
+same probability $p$, then we have to choose $p=1/n$ in order to
+maximize the probability that exactly one device accesses the channel
+and we thus have a successful time slot. In this case, for
+$n\to\infty$, the fraction of successful time slots and thus the
+throughput approaches $1/e$. We next establish corresponding values
+for the coded channel and general $\threshold$.
+
+\subsection{Optimal Transmission Probability}
+
+We focus on a single time slot $t$. We say that time slot $t$ is
+successful if the number of devices that access the channel is at
+least $1$ and at most $\threshold$. Assume that we have $n$ devices
+and each device transmits with probaility $p$. Let $X$ be the number
+of devices that access the channel in time slot $t$. Further define the
+\emph{contention} $c:=pn=\E[X]$. Note that $X\sim\Bin(n,p)$ is a
+binomial random variable and if the number of devices $n$ is
+sufficiently large, then $X$ is approximately Poisson distributed with
+expectation $c$. To analyze the limit behavior for large $n$, we
+therefore define $Y\sim \Po(c)$ and we approximate the probability for
+having a successful time slot by $\Pr(1\leq Y\leq \threshold)$. In the
+following, we use $c^*$ to denote the \emph{optimal contention} of the
+protocol, that is, the value $c$ maximizing $\Pr(1\leq Y\leq \threshold)$.
+
+\begin{lemma}\label{lemma:PoissonApproximation}
+  Assume that the number of devices accessing the channel is
+  $Y\sim\Po(c)$. Then, the probability that a time slot is successful
+  is maximized for $c=c^*:=(\threshold!)^{1/\threshold}$.
+\end{lemma}
+\begin{proof}
+  Consider a single time slot and let $\mathcal{S}$ be the event that
+  the time slot is successful. We have
+  \[
+  \Pr(\mathcal{S})= \sum_{i=1}^{\threshold}\frac{c^i}{i!}\cdot e^{-c}
+  \quad\text{and}\text\quad
+  \frac{d}{dc}\Pr(\mathcal{S}) = 
+  \left[\sum_{i=1}^\threshold\left(\frac{c^{i-1}}{(i-1)!}-\frac{c^i}{i!}\right)\right]\cdot
+  e^{-c} =
+  \left(1-\frac{c^\threshold}{\threshold!}\right)\cdot e^{-c}.
+  \]
+  It is not hard to see that for $c>0$, $\Pr(\mathcal{S})$ is
+  maximized when $\frac{d}{dc}\Pr(\mathcal{S})=0$ and thus for $c=c^*=(\threshold!)^{1/\threshold}$.
+\end{proof}
+
+Note that for $\threshold=1$, we get $c^*=1$ as expected. For
+$\threshold=2$, we get $c^*=\sqrt{2}$, for $\threshold=3$, we get
+$c^*=\sqrt[3]{6}\approx 1.817$, and for large $\threshold$, we have
+$c^*=\frac{\threshold+(1+o(1))\ln\threshold}{e}$.\ftodo{Obtained by approximating $\threshold!$ by using Stirling's formula and by using WolframAlpha to get the behavior of $\sqrt{2\pi \threshold}^{1/\threshold}$ for $\threshold\to\infty$. Maybe add a proper analysis/reference?}
+
+Let's now also see what the best possible throughput is if all active nodes always try to access the channel with identical probabilities. Under the assumption that $Y\sim\Po(c^*)$, we define $q^*_{=0}(\threshold):=\Pr(Y=0)$ and $q^*_{>\threshold}(\threshold):=\Pr(Y>\threshold)$ to be the probabilities that no devices or more than $\threshold$ devices transmit in a given time slot. The probability $q^*(\threshold):=q^*_{=0}(\threshold)+q^*_{>\threshold}(\threshold)$ is then the probability that a given time slot is not successful. We can bound those probabilities as follows.\ftodo{Get exact upper bounds as a function of $\threshold$.}
+\begin{align}
+    q^*_{=0}(\threshold) & = e^{-c^*} &&\approx e^{-\threshold/e}\cdot \threshold^{-1/e}\label{eq:PoissonLowerProb}\\
+    q^*_{>\threshold}(\threshold) & =  e^{-c^*} \cdot
+    \sum_{i=1}^\infty \frac{(c^*)^\threshold}{\threshold!}\cdot \frac{(c^*)^i}{(\threshold+i)!/\threshold!}
+    \stackrel{\left(\frac{(c^*)^\threshold}{\threshold!}=1\right)}{=} e^{-c^*} \cdot
+    \sum_{i=1}^\infty \frac{(c^*)^i}{(\threshold+i)!/\threshold!}&&\nonumber\\
+    & \leq  e^{-c^*}\cdot \sum_{i=1}^\infty \left(\frac{c^*}{\threshold+1}\right)^i 
+     =  \frac{c^*}{\threshold+1-c^*}\cdot e^{-c^*}
+    && \approx \frac{1}{e-1}\cdot q^*_{=0}(\threshold).
+    \label{eq:PoissonUpperProb}\\
+    q^*(\threshold) & = q_{=0}^*(\threshold) + q_{>\threshold}^*(\threshold) && \approx \frac{e}{e-1}\cdot e^{-\threshold/e}\cdot \threshold^{-1/e}.
+    \label{eq:PoissonFailureProb}
+\end{align}
+We therefore see that the probability $q^*$ that a time slot is not successful is exponentially small in $\threshold$. By using the network coding, it is therefore in principle possible to achieve a throughput of $1-q^*$, which is arbitrarily close to $1$. Note that even for small constant values of $\threshold$, we can only obtain a very significant improvement over the standard shared channel, where an algorithm in which all active devices always transmit with the same probability only achieves a throughput of $1/e$.
+
+\subsection{Analysis of the Protocol in the Batch Case}
+\label{sec:batchanalysis}
+
+We will now analyze the behavior of the protocol, which is described in \Cref{sec:algorithm}. For the batch case, we set the parameters of the algorithm as follows. We set $\start=1$, that is, the devices start transmitting with probability $1$. The update parameter $\update$ is set to a sufficiently small constant (we will see how the behavior of the protocol depends on the choice of $\update$. The normalization parameter $\norm$ is fixed as follows. If the number of devices at time $t$ is equal to $n_t$ and all devices use a transmission probability of $p_t$, then we define the contention at time $t$ to be $c_t=n_t\cdot p_t$. In the analysis, it will be natural to measure the value of the contention by its logarithm. If the protocol operates at the optimal contention $c_t=c^*$, we want the logarithm of the contention to remain unchanged in expectation. We therefore set $\norm$ such that $q_{=0}^*(\threshold)\cdot \norm\update = q_{>\threshold}^*(\threshold)\cdot \update$ and thus $\norm=q_{>\threshold}^*(\threshold)/q_{=0}^*(\threshold)$. For the analysis, we adapt the potential function approach that was developed in \cite{CJP19_simpleCR} for the uncoded channel. For the batch case, we can define the following simple potential function.
+\[
+\Phi_t := n_t + \frac{\update}{\threshold}\cdot\ln\left(\frac{c_t}{c^*}\right).
+\]
+

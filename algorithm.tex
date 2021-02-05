@@ -1,6 +1,7 @@
 \section{Algorithm Description}
+\label{sec:algorithm}
 
-In this section, we describe the basic backoff protocol from the perspective of a packet that arrives at some specific time.  On arrival, it initializes its \emph{joining probability} $p = 1/2$.
+In this section, we describe the basic backoff protocol from the perspective of a packet that arrives at some specific time. The algorithm has three parameters a joining probability $\start$, an update parameter $\update$ and a normalization factor $\norm$. On arrival, it initializes its \emph{joining probability} $p = \start$.
 
 Initially, the packet is inactive.  It listens silently until one of two \emph{critical events} occurs: (1) it observes a silent round, or (2) it observes a decoding event.  In either case, it becomes active in the following round.
 
@@ -8,14 +9,16 @@ From this round in which it becomes active, the packet divides time into epochs.
 
 When an epoch begins, a packet decides whether or not to \emph{join} the epoch: it chooses to join the epoch with probability $p$.  If it has joined the epoch, then it broadcasts in every round of the epoch until the epoch ends.
 
-When an epoch ends, a packet updates its joining probability $p$, depending on how the epoch ended.  If the epoch ended because of a silent round, the probability $p = p(1 + 1/\threshold)$.  If the epoch ended because $\threshold$ rounds expired without a decoding event, then the probability $p = p/2$.  If the epoch ended with a successful decoding event, then $p$ remains unchanged.
+When an epoch ends, a packet updates its joining probability $p$, depending on how the epoch ended.  If the epoch ended because of a silent round, the transmission probability is updated to $p=p\cdot e^{\norm\update/\threshold}$. % OLD: $p = p(1 + 1/\threshold)$
+ If the epoch ended because $\threshold$ rounds expired without a decoding event, then the probability is updated to $p=p\cdot e^{-\update}$. % OLD: $p = p/2$.  
+ If the epoch ended with a successful decoding event, then $p$ remains unchanged.
 
 When the packet is included in a successful decoding event, it has completed its mission and exits the system.
 
 \begin{itemize}
     \item If packet $p$ is inactive:
     \begin{itemize}
-        \item $p = 1/2$.
+        \item $p = p_0$.
         \item Wait until some round $t$ where a critical event occurs (i.e., round $t$ is silent or has a decoding event).
         \item Become active in round $t+1$ and start a new epoch.
     \end{itemize}
@@ -26,9 +29,11 @@ When the packet is included in a successful decoding event, it has completed its
     \item During an epoch, in round $t$:
     \begin{itemize}
         \item If $p$ has joined the epoch, then broadcast in round $t$.
-        \item If round $t$ is silent, then end the epoch and set $p = p(1 + 1/\threshold)$.
+        \item If round $t$ is silent, then end the epoch and set 
+            $p = p\cdot e^{\norm\update/\threshold}\approx p\cdot\big(1+\frac{\norm\update}{\threshold}\big)$.
         \item If round $t$ contains a successful decoding event, the end the epoch.
-        \item If round $t$ is the $\threshold$ round of the epoch, then end the epoch and set $p = p/2$.
+        \item If round $t$ is the $\threshold$ round of the epoch, then end the epoch and set 
+        $p = p\cdot e^{-\update}\approx p\cdot (1-\update)$.
         \item If the epoch has ended, begin a new epoch in round $t+1$.
     \end{itemize}
 \end{itemize}

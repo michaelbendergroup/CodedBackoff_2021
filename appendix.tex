@@ -1,0 +1,92 @@
+\appendix
+
+\section{Probability Inequalities}
+
+\begin{lemma}\label{lemma:BinomialPoisson}
+  Let $X$ be a binomial random variable and $Y$ be a Poisson random
+  variable such that $\E[X]=\E[Y]=\mu$ for some $\mu>0$. Then,
+  $\Pr(X=x)< \Pr(Y=x)$ for $x=0$ and all integers $x\geq 2\mu+1$.
+\end{lemma}
+\begin{proof}
+  Since $X$ is a binomial random variable, we know that
+  $X\sim\mathrm{Bin}(n,\mu/n)$ for some integer $n\geq 1$. Let's first
+  look at $x=0$, where we have
+  \[
+  \Pr(X=0)=\left(1-\frac{\mu}{n}\right)^n < e^{-\mu} = \Pr(Y=0).
+  \]
+  For $x>0$, we have
+  \begin{eqnarray*}
+    \Pr(X=x) & = & 
+        \binom{n}{x}\cdot \left(\frac{\mu}{n}\right)^x\cdot
+        \left(1-\frac{\mu}{n}\right)^{n-x}\\
+    & = & \left(\prod_{i=0}^{x-1}\frac{n-i}{n}\right)\cdot \frac{n^x}{x!}\cdot
+        \left(\frac{\mu}{n}\right)^x\cdot
+        \left(1-\frac{\mu}{n}\right)^{n} \cdot
+        \left(1-\frac{\mu}{n}\right)^{-x}\\
+    & < & \frac{\mu^x e^{-\mu}}{x!}\cdot
+        \prod_{i=0}^{x-1}\left(1-\frac{i}{n}\right)\cdot
+        \left(1-\frac{\mu}{n}\right)^{-x}\\
+    & < & \Pr(Y=x)\cdot e^{\frac{x\mu}{n}-\sum_{i=0}^{x-1}\frac{i}{n}}\ =\ 
+        \Pr(Y=x)\cdot e^{\frac{1}{n}\cdot\left(x\mu - \binom{x}{2}\right)}.
+  \end{eqnarray*}
+  We therefore have $\Pr(X=x)<\Pr(Y=x)$ if $\binom{x}{2}\geq x\mu$,
+  and therefore if $x\geq 2\mu+1$.
+\end{proof}
+
+\begin{lemma}\label{lemma:PoissonShift}
+  Let $X$ and $Y$ be two Poisson random variables with expectations $\E[X]=\lambda$ and $\E[Y]=(1+\delta)\lambda$ for some $\lambda>0$ and $0\leq \delta\leq \frac{\sqrt{5}-1}{2}$. For $k\geq 2\lambda$, it holds that
+  \[
+  \Pr(Y\geq k) \leq \frac{(1+\delta)^{k+2}}{e^{\delta\lambda}}\cdot \Pr(X\geq k).
+  \]
+\end{lemma}
+\begin{proof}
+  For every $i\geq 0$, we have
+  \begin{equation}\label{eq:singlePoBound}
+      \Pr(Y = i) = \frac{(1+\delta)^i\lambda^i}{i!}e^{-(1+\delta)\lambda} =
+      (1+\delta)^i\cdot e^{-\delta \lambda}\cdot \Pr(X = i).
+  \end{equation}
+  Because $k>2\lambda$, for every $i\geq 0$, we further have
+  \begin{equation}\label{eq:relativeProb}
+      \Pr(X = k + i) = \frac{\lambda^{k+i}}{(k+i)!}\cdot e^{-\lambda} \leq
+      \left(\frac{\lambda}{k}\right)^i\cdot \frac{\lambda^k}{k!}\cdot e^{-\lambda} =
+      \left(\frac{1}{2}\right)^i\cdot \Pr(X = k).
+  \end{equation}
+  We can now bound the probability $\Pr(Y\geq k)$ as follows.
+  \begin{eqnarray*}
+      \Pr(Y \geq k) & \stackrel{\eqref{eq:singlePoBound}}{=} &
+      \frac{1}{e^{\delta\lambda}}\cdot \sum_{i=k}^\infty (1+\delta)^i\cdot \Pr(X=i)\\
+      & = & \frac{1}{e^{\delta\lambda}}\cdot\left[
+      (1+\delta)^k\cdot \Pr(X\geq k) + \sum_{i=1}^\infty 
+      \left((1+\delta)^{k+i}-(1+\delta)^k\right)\cdot \Pr(X=k+i)
+      \right]\\
+      & \stackrel{\eqref{eq:relativeProb}}{\leq}& \frac{(1+\delta)^k}{e^{\delta\lambda}}\cdot\left[
+      \Pr(X\geq k) + \sum_{i=1}^\infty 
+      \left(\left(\frac{1+\delta}{2}\right)^{i}-\frac{1}{2^i}\right)\cdot \Pr(X=k)
+      \right]\\
+      & \leq & \frac{(1+\delta)^k}{e^{\delta\lambda}}\cdot
+      \frac{1+\delta}{1-\delta}\cdot \Pr(X\geq k)
+      \ \stackrel{\big(\delta\leq \frac{\sqrt{5}-1}{2}\big)}{\leq}\ 
+      \frac{(1+\delta)^{k+2}}{e^{\delta\lambda}}\cdot \Pr(X\geq k).
+  \end{eqnarray*}
+\end{proof}
+
+We also use the following straightforward bounds on the tail probabilities of the sum of independent Bernoulli random variables.
+
+\begin{lemma}\label{lemma:tailBounds}
+  Let $X_i$, $i=1,\dots,n$, be independent Bernoulli random variables with $\Pr(X_i=1)=p_i$. Further, let $X:=\sum_{i=1}^n X_i$ and define $\mu:=\E[X]=\sum_{i=1}^n p_i$. We have
+  \[
+  \Pr(X=0) \leq e^{-\mu}\quad\text{and}\quad
+  \forall k\geq \mu \, : \, \Pr(X > k)\leq \left(\frac{e \mu}{k+1}\right)^{k+1}\cdot e^{-\mu}.
+  \]
+\end{lemma}
+\begin{proof}
+  The first bound follows because
+  \[
+  \Pr(X=0) = \prod_{i=1}^n (1-p_i) \leq e^{-\sum_{i=1}^n p_i} = e^{-\mu}.
+  \]
+  The second bound follows from a standard Chernoff bound. For $\delta\geq 0$, we know that
+  \[
+  \Pr(X\geq (1+\delta)\mu)\leq \left(\frac{e^\delta}{(1+\delta)^{1+\delta}}\right)^\mu.
+  \]
+  The bound now follows by observing that $\Pr(X>k)=\Pr(X\geq k+1)$, by setting $\delta = (k+1)/\mu - 1$, and by using that $k\geq \mu$ and therefore $\delta\geq 0$.
+\end{proof}

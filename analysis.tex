@@ -21,3 +21,31 @@ The key claims we need to prove are as follows.  For the purpose of this paragra
 \end{itemize}
 
 Let $A(t)$ be the number of packets that arrive at the beginning of round $t$.  With the above claims proved, we can show that, in expectation, the change in potential in every round is $A(t) - (1 - e^{-\Theta(\threshold)})$.
+
+\subsection{So what?}
+
+So we have shown that the potential function ensures that in each round, the expected decrease in potential is $\geq 1 - e^{-\theta(\threshold)}$.  What does that imply?
+
+There seems to be a fundamental trade-off in terms of throughput:
+\begin{itemize}
+    \item If the initial probability $p$ is small, then if we inject only one packet, it will take $\theta(\threshold \log(1/p)$ rounds for it to broadcast successfully.  
+    \item If the initial probability $p$ is larger, then consider the following unfortunate execution: the adversary inject $4(\threshold/p)$ packets every $\threshold$ rounds (with the likelihood each time that they do not succeed, because contention is $> \threshold$).  This continues for $pn/\threshold$ epochs for $pn$ rounds until there are $n$ nodes in the system.  Assume, then, that the $n$ packets now all finish in the next $n$ rounds.  Then the achieved throughput is $n$ packets in $n(1 + p)$ rounds.  So unless $p$ is subconstant, e.g., $e^{-\threshold}$, we are not going to get the throughput we want.
+\end{itemize}
+Note that this feels like a fairly fundamental trade-off.  For a solo node to get good performance, we need a high initial probability.  But a high initial probability allows the adversary to overload the system for long enough to prevent good throughput.  
+
+The basic problem is that we have no ``admission control.'' The packets that join the system once the system is overloaded need to stay out of the way until the existing packets complete.
+
+For example, consider the revised protocol where a packet remains ``passive'' until it sees either a silent round or a successful decoding event.
+
+The technical problem we were having was that when a packet entered the system, it increased $N(t)$, but it also increased the other terms as well (due to the increase in contention caused by the new packet).  There are different solutions to this:
+\begin{itemize}
+    \item If the initial probability $p = e^{-\threshold}$, then the increase in contention is small, and so we still get the throughput we want.  Unfortunately, our analysis still causes trouble when there is only one packet in the system, as there is no time to amortize the cost.
+    \item If a packet enters in a round with a successful decoding event, then we may be able to bound the increase according to the new packets with the decrease of the packets that finished.  But this seems easy to overwhelm.  For example, at most $\threshold$ packets finished, so if the adversary injects $2(1/p)\threshold$ packets, then the total contention increases.
+    \item If a packet enters in a silent round, there is really nothing to counteract the increase in potential.  
+\end{itemize}
+
+With admission control, you could divide the execution into sub-executions: during each sub-execution, no new nodes enter the system, and potential decreases (in expectation) in each round.  At the beginning of each sub-execution, there is either a silent round or a successful decoding event, so (w.h.p.) the contention just before the new sub-execution began is $\leq \threshold$.  
+
+If you modify the admission control to only enter on a silent round, we can then bound the contention at the beginning of each sub-execution: if $n$ nodes enter at the beginning of the sub-execution, the contention is $\leq O(1) + n + \threshold|\log(pn/\lambda)| + \threshold(\log(pn)/\pmin)$.  That is, there is $O(1)$ remaining potential from old packets, and then all the potential from the new packets.  
+
+This helps, but fundamentally, you still cannot avoid some constant factor throughput as the best possible. Imagine, e.g., the adversary repeatedly injects $4\threshold$ packets and then waits until they finish before injecting more.  Assuming that takes even 5 epochs, you are getting a throughput of at best $80\%$. 

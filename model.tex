@@ -1,1 +1,112 @@
 \section{Model}
+
+\subsection{Basics}
+
+\paragraph{Transmitters:} We have a collection of devices that want to transmit on a multiple-access channel.  
+If a device is in the system with at least one packet to send, we say that it is active.  In general, we will assume that time proceeds in synchronized slots, and in every slot, each device can either transmit or remain silent.  
+%For now, think of each message as an element in some field.  
+
+If at least one device transmits in a round, but not too many devices broadcast in a round, then we say it is a ``good round''; otherwise, we say it is a ``bad round.''  More precisely, there is a parameter $\threshold \geq 1$ so that if at least one and $\leq \threshold$ devices transmit in a round, then the round is \defn{good}; otherwise, if $> \threshold$ devices broadcast in a round, it is \defn{bad}.  If zero devices broadcast in a round, we say that it is a \defn{silent} round. 
+
+
+\paragraph{Base station:} There is a single base station that is trying to decode messages from all the devices.  In a bad round, the base station gets nothing.  In each good round, the base station receives the sum of the elements transmitted in that round, along with the identity of the devices that transmitted in that round.  
+%(We may also want to assume some noise, but as long as the noise is Gaussian or distributed in some reasonable way, it shouldn't change much.)  
+The base station will use this information to (eventually) decode the messages that were sent.
+
+\paragraph{Sensing:} By default, we do not assume that the devices can monitor the channel in any way.  They will receive some feedback as to whether or not their message has been successful received and/or decoded---see below for details on this feedback.  
+
+%An alternative model would allow all devices (whether or not they participate in a round) to determine what had happened in that round.  A natural (and useful) observation would be for each device to learn whether or not \emph{any} transmissions had occurred in the round.  That is, a device could differentiate a silent round (i.e., not transmissions) from a noisy round (i.e., at least one transmission).  A stronger model would allow devices to also different good and bad rounds.  A very strong model would inform each device of the \emph{number} of transmitters in a round.  (This type of counting information would allow for very simple algorithms.)
+
+\subsection{Decoding Messages}
+
+\paragraph{Simple linear schemes:} From the base station's perspective, we can think of each round as a column in a \emph{transmission matrix} T, where $T[j, t] = 1$ indicates that devices $j$ broadcast at time $t$ (and $T[j, t]=0$ otherwise).  Let $m$ be the \emph{message vector} where $m[j]$ indicates the message sent by device $j$.  Notice that $mT$ yields the vector received by the base station.  
+
+If the transmission matrix $T$ is invertible, then the base station can readily recover the message vector (by calculating $mTT^{-1}$).  Thus to ensure that the base station can decode a collection of messages, it is sufficient to guarantee that $T$ is invertible.   
+
+\begin{claim}
+Assume that the columns in the transmission matrix $T$ are linearly independent.  Assume there are at most $\ell$ non-zero rows in $T$.  Then the base station can decode all the transmitted messages after $\ell$ rounds.
+\end{claim}
+
+\paragraph{Coding Intervals:} We want to ensure that the base station is able to decode messages eventually---and ideally with relatively short latency.  To that end, define $T_{t_1}^{t^2}$ as the transmission matrix from time $t_1$ to time $t_2$ (inclusive).  We divide time into ``decoding intervals'' so that in each interval, all the messages sent during that interval can be decoded at the end of the interval:
+\begin{definition}
+Let $t_0 = 0$.  Inductively define $t_j$ to be the earliest time so that $T_{t_{j-1}+1}^{t_j}$ is invertible.  Each $t_j$ is defined to be a \defn{decoding event}.  For all $j \geq 1$, define $[t_{j-1}+1, t_{j}]$ to be the \defn{$j^{th}$ decoding interval}.  Define $(t_j - t_{j-1})$ to be the \defn{length of the $j^{th}$ decoding interval}.
+\end{definition}
+In general, our goal will be to show that for every execution (with some given model for when devices arrive, leave, and have packets to transmit), with high probability, every decoding interval is of finite length, and the average decoding interval is short.  If decoding intervals are finite, then eventually the packets that were transmitted are decoded; if decoding intervals are short, then the latency (i.e., time from when a packet is first transmitted until it is decoded) is short.  
+
+\paragraph{Feedback:} An important issue is when and how a device can determine that its message has been received and decoded.  
+
+If there is no feedback, a device must continue to transmit its packet until it has a high confidence that the base station has decoded its message.  (For example, if a device knows \emph{a priori} that there are never more than $n$ devices concurrently trying to transmit, it may transmit with probability $1/n$ for $\Theta(n \log{n})$ time, after which with high probability in $n$, the packet has been received and decoded.)  In all but the simplest of scenarios, this lack of feedback tends to lead to  inefficient protocols.  (Even in the simple example given here, most of the bandwidth is wasted due to unnecessary retransmissions.)
+
+We will assume that devices receive as feedback a one-bit indicator when a decoding event occurs at the base station.  That is, each device that is active in the system learns immediately after round $t$ whether a decoding event occurred in round $t$ or not.  If a device had been transmitted a message in rounds prior to $t$, and a decoding event occurs after round $t$, then the device can safely assume that its message has been received and decoded.
+
+A weaker form of feedback would be to assume that in each round, each device that transmitted could determine whether it was a good or a bad round (but nothing else).  In this case, a device could safely assume that it had transmitted enough information after it had participated in $\threshold$ good rounds.
+
+%In some models, partial decoding may be possible.  For example, if there is additional noise added to the transmitted messages, perhaps some decoding scheme might only recover some of the messages sent.  In that case, we would need feedback that included more information about which messages were decoded.
+
+\paragraph{Efficiency.}  One goal of combining coding and backoff is to achieve efficient channel usage.  Even if we have bounded decoding intervals, we might be using the channel inefficiently---e.g., if every device is transmitting with a very small probability, leaving many rounds empty.  It turns out that the fraction of good rounds is a good way to measure efficiency:
+\begin{definition}
+For a given execution, let $R$ be the set of rounds in which there is at least one active device with a packet to transmit.  Let $R_{good}$ be the subset of rounds in $R$ that are good.  We define the \defn{efficiency} of the execution to be the value of $|R_{good}|/|R|$.
+\end{definition}  
+For a \emph{reasonable} protocol, i.e., one that stops transmitting its packet once it receives confirmation that it has been decoded, the efficiency correctly captures the fraction of rounds in which the channel was fully utilized:
+\begin{claim}
+Assume that a device never transmits a packet once it has been decoded at the base station.  For a given execution, let $R$ be the set of rounds in which there is at least one active device with a packet to transmit.  Then if the execution has efficiency $\rho$, at least $\rho R$ packets are decoded during the execution.
+\end{claim}
+(The assumption about never transmitting after decoding is equivalent to saying that a packet is only transmitted during a single decoding interval, and the claim is true because it holds for each decoding interval.)
+
+Since it is impossible to transmit more than $|R|$ packets during an execution of length $|R|$ (ignoring rounds in which there are no active devices), if we can transmit at least $\rho |R|$ packets, for a value of $\rho$ close to $1$, then we have achieved a good efficiency.
+
+Notice that in weaker feedback models, protocols may not be reasonable because they do not know when their message has been decoded.  In this case, we may want a more careful definition of efficiency based explicitly on the number of decoded packets.
+
+\subsection{Arrival Models}
+
+There are several different ways in which we might want to model devices arriving and leaving, and determining whether or not they have packets to transmit.  We differentiate three different case: batch, random arrivals, and adversarial arrivals.
+
+\paragraph{Batched:}
+\begin{itemize}
+	\item \emph{Static packets:} There are $n$ devices, each with exactly one packet to send.  The value of $n$ may either be known or unknown.
+\end{itemize}
+
+\paragraph{Random arrivals:}
+\begin{itemize}
+	\item \emph{Dynamic packets:} In each time step, for some constant $0 < \lambda < 1$, with probability $\lambda$ a new device arrives in the system with exactly one packet to send.  Initially, there may be zero devices in the system (i.e., empty initial system), or we may begin with $n$ devices already in the system, having all arrived at time 0.  In this case, the value of $n$ is typically unknown.
+
+	\item \emph{Static stations, saturated:} There are a total of $n$ devices.  Each station always has at least one packed to send.  The value of $n$ may be either known or unknown.  
+
+	\item \emph{Static stations, queued:} There are a total of $n$ devices.  (The value of $n$ may be either known or unknown.) Each station has a queue of packets to send.  In each time step, for some constant $0 < \lambda < 1$, with probability $\lambda$, a packet is added to the queue of a station chosen uniformly at random.
+\end{itemize}
+
+\paragraph{Adversarial:}
+\begin{itemize}
+	\item \emph{Recycling game:} There is a bound $N$ on the maximum number of devices in the system.  (The value of $N$ is typically unknown.)  At any time when there are fewer than $N$ active packets, the adversary can active one device with exactly one packet to send.
+
+	\item \emph{Windowed adversarial:}  There is a window value $W \geq 1$ and a constant $0 < \lambda < 1$ so that for any consecutive $W$ rounds, the adversary activates at most $\lambda W$ devices, each with exactly one packet to transmit.
+\end{itemize}	
+
+	
+
+\subsection{Model Questions}  
+
+The explanation of why we can do this type of decoding above is, I suspect, too simplified to be particularly convincing.  Here are some questions that come to mind (that I suspect are addressed by more complicated models).
+
+\emph{Why is it reasonable to assume that the base station can determine which devices broadcast in a round?}  
+\begin{itemize} 
+\item One answer is that there is a small amount of jitter so that some transmissions begin first, and others end after, and from the portion of the transmission before/after, we can determine who is transmitting.  Presumably, this is part of why it is important that we assume that $\threshold$ is relatively small.  This reasoning is not immensely satisfying: this makes some sense for $\kappa=2$, but not larger.
+
+\item Another answer is that each synchronized transmission slot consists of two parts: a very low-rate transmission period where each device transmits its identifier (and, perhaps, a random multiplier), and a high-rate transmission period where the data is sent.  The low-rate transmission is sufficiently low that we can decode up to $\threshold$ messages sent simultaneously.  However, since it is only sending one (or two) integers, even at a very low-rate, it is still a relatively short period of time compared to the main data.  (There is then a small optimization problem here in choosing $\threshold$ as a function of the length of a main data packet and the high transmission rate, i.e., choosing the maximum value of $\threshold$ so that the low-transmission rate is still fast enough to ensure that it does not dominate the round.)
+
+\item A third answer is that the simple linear matrix inversion is a too simplistic model of the world, and we should imagine some more powerful coding technique.  (The devices are not sending elements from some arbitrary field, but from a code book with some rate, etc.).  This is perhaps a generalization of the previous solution.
+
+\item A fourth answer is that wireless transmissions do actually have a ``signature'' that lets you differentiate them from each other, e.g., based on direction they came form, power level, perturbations in the clock signal, etc.  Maybe there is some (experimental) story about how we can decide which transmitters are included in a transmission based on properties of what is received.  
+
+\item A fifth answer is that we do not want to assume the existance of known transmission matrix $T$.  For example, imagine that once a device begins transmitting a packet, then it continues until its message is decoded.  That is, each row in $T$ consists of a prefix of 0's followed by a suffix of 1's.  In that case, we can (I suspect) decode without knowing $T$ in advance.  For that to work, we had better make sure we never have more than $\threshold$ devices broadcasting, as from that point on, we are out of luck.
+\end{itemize}  
+
+
+\emph{Why do we assume that rounds are linearly independent?}
+\begin{itemize}
+\item The first answer is that we should not.  We should only rounds in which a different subset of devices broadcast.  (This becomes more interesting when you have highly biased distributions, i.e., some devices broadcasting often and some rarely.)
+
+\item The alternative is that we assume each received message, before being summed on the channel, is multiplied by some randomly chosen multiplier.  This random multiplier could be a result of fluctuating channel conditions, or it might be that the transmitter performs this random multiplication first.  In either case, the base station needs to know this collection of multipliers in order to decode, i.e., the message multipliers are now part of the transmission matrix $T$.  This raises the question of how the base station learns the multipliers.  If the multipliers are caused by fluctuating channel conditions, we then need to imagine that the base station is constantly measuring channel conditions to all the devices, which does feel immensely plausible.  (It seems more plausible to hope that channel conditions are relatively stable during a decoding interval.)  On the other hand, if the multipliers are chosen by the receiver, then perhaps the base station learns these multipliers in the same way that it learns who transmitted in a round. 
+\end{itemize}
+
+\emph{Are we simplifying too much thinking of each message as a single element from a field?}  We presumably want to think about backoff in the context of transmitting packets (not bits), and a packet consists of a sequence of symbols (each drawn from a relatively small space of possible symbols).  The base station is receiving a sum of the symbols sent at a given time.  If the rounds are perfectly synchronized, this probably does not matter much.  On the other hand, if different transmissions overlap, then this model of simply summing received packets does not make much sense.  \emph{(I'm hopeful that we can ignore this level of detail for now.)}

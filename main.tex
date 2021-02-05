@@ -1,20 +1,80 @@
-\documentclass{article}
+\documentclass[11pt]{article}
+
 \usepackage[utf8]{inputenc}
 \usepackage{times}
-\usepackage{fullpage}
+\usepackage[letterpaper,margin=1.0in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{xcolor}
 
-\title{CodedBackoff}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\usepackage{hyperref}
+\hypersetup{
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    colorlinks=true,        % false: boxed links; true: colored links
+    linkcolor=blue,          % color of internal links (change box color with linkbordercolor)
+    citecolor=darkgreen,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+\usepackage[capitalize,nameinlink]{cleveref}
+\crefformat{footnote}{#2\footnotemark[#1]#3}
+
+\usepackage[textsize=tiny]{todonotes}
+\newcommand{\ftodo}[1]{\todo[color=green!20]{FK: #1}}
+\newcommand{\fabian}[1]{{\color{darkgreen}[Fabian: #1]}}
+\newcommand{\TODO}{{\color{red}\bf TODO}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newtheorem{definition}{Definition}
+
+\newcommand{\defn}[1]{{\textit{\textbf{\boldmath #1}}}}
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+\newcommand{\set}[1]{\left\{#1\right\}}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\renewcommand{\Pr}{\mathbb{P}}
+
+\newcommand{\threshold}{\kappa}
+\newcommand{\start}{p_0}
+\newcommand{\update}{\varepsilon}
+\newcommand{\norm}{\alpha}
+\newcommand{\Bin}{\mathrm{Bin}}
+\newcommand{\Po}{\mathrm{Po}}
+
 
 \begin{document}
 
-\newcommand{\threshold}{\kappa}}
+\title{Contention Resolution with Physical-Layer Network Coding}
 
+\author{M.\ Bender \and S.\ Gilbert \and F.\ Kuhn}
 \maketitle
+
+Please write your github handles and Michael will give access to the github backup repo.
+
+\begin{itemize}
+    \item Mine is ``kuhnfabian''
+    \item Mine is ``sethgilbert''
+\end{itemize}
 
 \include{model}
 
 \include{algorithm}
 
+\include{batch}
+
 \include{analysis}
+
+\bibliographystyle{alpha}
+\bibliography{references}
+
+\include{appendix}
 
 \end{document}
