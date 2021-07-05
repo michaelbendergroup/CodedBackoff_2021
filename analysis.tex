@@ -49,3 +49,64 @@ With admission control, you could divide the execution into sub-executions: duri
 If you modify the admission control to only enter on a silent round, we can then bound the contention at the beginning of each sub-execution: if $n$ nodes enter at the beginning of the sub-execution, the contention is $\leq O(1) + n + \threshold|\log(pn/\lambda)| + \threshold(\log(pn)/\pmin)$.  That is, there is $O(1)$ remaining potential from old packets, and then all the potential from the new packets.  
 
 This helps, but fundamentally, you still cannot avoid some constant factor throughput as the best possible. Imagine, e.g., the adversary repeatedly injects $4\threshold$ packets and then waits until they finish before injecting more.  Assuming that takes even 5 epochs, you are getting a throughput of at best $80\%$. 
+
+
+\subsection{New Potential Function}
+
+To briefly summarize the algorithm, at the end of an epoch, packets multiplicatively update their broadcast probabilities by a factor of $\kappa^{1/4}$. Packets join with broadcast probability $p_0 = 1/\sqrt{\kappa}$. Inactive packets only become active upon hearing a silent epoch. Our desired contention is $c_* = \sqrt{\kappa}$. If contention is in the window $[\kappa^{1/4}, \kappa^{3/4}]$, we say that contention is good.
+
+\[\Phi(t) = N(t) + logC(t) + s(t)\]
+
+Our potential function $\Phi(t)$ has three components.
+
+\begin{itemize}
+    \item $N(t)$ is the total number of packets in the system at time $t$.
+    
+    \item $logC(t) = \alpha | \log_\kappa \frac{c(t)}{c_*} |$.
+    
+    fu
+    
+    \[
+    \alpha = \begin{cases} 
+    4\kappa, & \text{if } c(t) \geq c_* \\
+    4, & \text{otherwise}.
+    \end{cases}
+    \]
+    
+    Foo
+    
+    This second term approximates the length of time until contention is near $c_*$. In the case that $c(t) > c_*$, we will have to wait roughly $4 \log_\kappa c(t) / c_*$ epochs of length $\kappa$ for good contention, as each epoch is of length $\kappa$ when more than $\kappa$ packets join, and most epochs result in noise, moving contention towards $c_*$ by a multiplicative factor of $\kappa^{1/4}$. In the case that $c(t) < c_*$, we will have to wait roughly $4 \log_\kappa c_*$ epochs of length $1$ for good contention.
+    
+    bar
+    
+    \item $s(t) = \alpha \log_\kappa \frac{c(t)}{c_*} + 4\kappa \log_\kappa \frac{1}{p_{min}}$. This third term accounts for decreases in contention due to successful packet transmissions.
+\end{itemize}
+
+\subsection{The Non-Arrival Case}
+
+We consider three cases at the beginning of a given epoch: high contention, low contention, and good contention.
+
+
+\paragraph{Case 1: \boldmath$c(t) > \kappa^{3/4}$.}
+
+In this case of high contention, we will bound the probability of a silent epoch and then argue that both successful epochs and busy epochs result in a decrease to our potential function equal to the length of the epoch.
+
+Applying Chernoff Bounds, the probability of a silent epoch is at most $1 / 2^{\Theta(\kappa^{3/4})$. A silent epoch will have no effect on the first and third terms, leaving them unchanged. It will, however, increase the second term by $\kappa$. Thus the expected increase in potential due to the possibility of a silent epoch is at most $\kappa / 2^{\Theta(\kappa^{3/4})}$.
+
+Busy epochs leave the first and third terms unchanged, but result in a $\kappa$ decrease to the second term over $\kappa$ steps due to contention decreasing multiplicatively by a factor of $\kappa^{1/4}$.
+
+Successful epochs effect all three terms. A successful epoch of length $u$ will result in a decrease to the first term of exactly $u$, as $u$ packets successfully transmitted. We now argue that the the combined effect of a successful epoch on the second and third terms is non-positive, as the third term is designed to decrease and counter any increase in the second term due to packet successes. Firstly, packet successes can only increase $p_min$, which would decrease our potential function. However, packet successes also decrease $c(t)$ to $c(t)'$, which does decrease the third term but may actually increase the second term if the newly resulting $\log_{\kappa} c(t) / c*$ is negative. This is the case where the increase in potential due to the second term is perfectly matched by the decrease in potential due to the third term. In particular, we note that the net change in the 3rd term is $\alpha \log_\kappa C($
+
+\paragraph{Case 1: \boldmath$c(t) < \kappa^{1/4}$.}
+
+
+\paragraph{Case 1: \boldmath$\kappa^{1/4} \leq c(t) \leq \kappa^{3/4}$.}
+
+
+\subsection{Arrivals}
+
+Suppose a batch of $m$ packets arrive at time $t$. By how much does this batch increase our potential function $\Phi(t)$?
+
+The first term, $n(t)$, increases by $m$.
+
+Contention increases from $c(t)$ to $c(t) + m/\sqrt{\kappa}$. The second term is only increasing with $c(t)$ when $c(t) > c_*$ (and the log is positive). Thus the increase in the second term is at most $4\kappa log_kappa \frac{c(t)$

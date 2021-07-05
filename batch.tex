@@ -22,7 +22,7 @@ for the coded channel and general $\threshold$.
 We focus on a single time slot $t$. We say that time slot $t$ is
 successful if the number of devices that access the channel is at
 least $1$ and at most $\threshold$. Assume that we have $n$ devices
-and each device transmits with probaility $p$. Let $X$ be the number
+and each device transmits with probability $p$. Let $X$ be the number
 of devices that access the channel in time slot $t$. Further define the
 \emph{contention} $c:=pn=\E[X]$. Note that $X\sim\Bin(n,p)$ is a
 binomial random variable and if the number of devices $n$ is
@@ -82,3 +82,8 @@ We will now analyze the behavior of the protocol, which is described in \Cref{se
 \Phi_t := n_t + \frac{\update}{\threshold}\cdot\ln\left(\frac{c_t}{c^*}\right).
 \]
 
+Note that if $n$ devices are added at time $0$, the initial value $\Phi_0$ is $\Phi_0\leq n + \frac{\update}{\threshold}\cdot \ln n$. We next show that in every time slot, the value of the potential function decreases by $1-o(1)$ with probability $1-o(1)$.
+
+\begin{lemma}\label{lemma:batchpotential}
+  
+\end{lemma}
